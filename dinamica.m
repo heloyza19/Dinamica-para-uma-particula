@@ -1,16 +1,35 @@
-function dinamica(X,Y,Xc,Yc,m)
+function dinamica(X,Y,Xc,Yc,I,m)
+
 ordem_y=sort(Y);
 ordem_x=sort(X);
 np=length(X); %Número de pontos
+
 %PVI
-Ax=0;
-Ay=-9.81;
-Vx =10;       % Velocidade na coordenada X (m/s)
-Vy =0;        % Velocidade na coordenada Y (m/s)
+[Frx,Fry,Tr]=campodeforca(X,Y,Xc,Yc);
+F=[Frx; Fry]; 
+Ax=Frx/m;
+Ay=Fry/m;
+Vx=0;                % Velocidade na coordenada X (m/s)
+Vy=0;                 % Velocidade na coordenada Y (m/s)
+W=0;
+alfa=Tr/I;
+
+
+
+for j=1:1:np
+    R(j)=sqrt(((X(j)-Xc)^2)+((Y(j)-Yc)^2));
+    teta(j)=atan((Y(j)-Yc)/(X(j)-Xc));
+   if X(j)<Xc & Y(j)>Yc                 %segundo quadrante
+       teta(j)=teta(j)+pi;
+   elseif X(j)<Xc & Y(j)<Yc             %terceiro quadrante
+       teta(j)=teta(j)-pi;
+   end
+end
+
 
 %dimensionamento do gráfico  (ajeitar)
-h =ordem_y(np)+2;                %Altura max
-d=100;                           %distancia maxima
+h =20;                %Altura max
+d=20;                           %distancia maxima
 
 %Tempo de integração
 t=100;                 %(calcular o tempo para chegar ao solo)
@@ -35,27 +54,29 @@ for i = 1:length(times)
     %Componente X
     m1=Vx;
     m2=Vx+dt*Ax;
-    X=X+ones(1,np)*dt*0.5*(m1+m2);
+    Xc=Xc+dt*0.5*(m1+m2);
     Vx=Vx+Ax*dt;
     
     %Componente Y
     M1=Vy;
     M2=Vy+dt*Ay;
-    Y=Y+ones(1,np)*dt*0.5*(M1+M2);
+    Yc=Yc+dt*0.5*(M1+M2);
     Vy=Vy+Ay*dt;
     
     ordem_y=sort(Y);
     ymin=ordem_y(1);
     
-    %Rotação
-    %[X,Y]=rotacao(X,Y,Xc,Yc,I)
-
+    %Rotação do objeto
+    X=ones(1,np).*Xc+R.*cos(teta);
+    Y=ones(1,np).*Yc+R.*sin(teta);
+    teta=teta+ones(1,np)*W*dt;
+    W=W+alfa*dt; 
     %O objeto deve parar ao chegar em y=0 (chão)
-    if ymin<0
-        deltay=ymin;
-        Y=Y+ones(1,np)*deltay;
-        ymin=0;
-    end
+    %if ymin<0
+        %deltay=ymin;
+        %Y=Y+ones(1,np)*deltay;
+        %ymin=0;
+    %end
     
     % Grava o plot atual
     mov(i)=getframe(gcf);

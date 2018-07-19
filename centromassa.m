@@ -17,11 +17,12 @@ yo=round(ordem_y(1)-1);   %ponto y inicial, idem.
 xn=round(ordem_x(np)+1);
 yn=round(ordem_y(np)+1);
 
-nx=round((xn-xo)/dx);       %número de intervalos em x
-ny=round((yn-yo)/dy);       %idem em Y
+nx=ceil((xn-xo)/dx);       %número de intervalos em x
+ny=ceil((yn-yo)/dy);       %idem em Y
 
 M=ones(nx,ny);            %Matriz da massa específica
 [M,m]=densidade(M,xo,yo,nx,ny,dx,dy,a,b);
+
 
 for i=1:1:nx  
   x(i)=xo+(i-1)*dx;
