@@ -1,19 +1,32 @@
 function dinamica(X,Y,Xc,Yc,I,m)
-
+Xmin=0;
+Xmax=100;
+Ymin=0;
+Ymax=100;
+dx=0.2;
+dy=dx;
+nx=ceil((Xmax-Xmin)/dx);
+ny=ceil ((Ymax-Ymin)/dy);
+xco=Xc;
+yco=Yc;
 ordem_y=sort(Y);
 ordem_x=sort(X);
 np=length(X); %Número de pontos
 
 %PVI
-[Frx,Fry,Tr]=campodeforca(X,Y,Xc,Yc);
-F=[Frx; Fry]; 
-Ax=Frx/m;
-Ay=Fry/m;
-Vx=0;                % Velocidade na coordenada X (m/s)
+%[F]=campodeforcacont(Xmin,Ymin,dx,dy,nx,ny);
+[F,Xp,Yp]=campodeforca(Xmin,Ymin,dx,dy,nx,ny);
+Vx=0;                 % Velocidade na coordenada X (m/s)
+Vxo=Vx;
 Vy=0;                 % Velocidade na coordenada Y (m/s)
-W=0;
-alfa=Tr/I;
+Vyo=Vy;
+W=0;                  %Velocidade angular
+Wo=W;
 
+%Tempo de integração
+t=50;                 
+dt = 0.05;             % Intervalo de tempo (s) 
+times = 0 : dt : t;    
 
 
 for j=1:1:np
@@ -25,22 +38,23 @@ for j=1:1:np
        teta(j)=teta(j)-pi;
    end
 end
-
+tetai=teta;
 
 %dimensionamento do gráfico  (ajeitar)
-h =20;                %Altura max
-d=20;                           %distancia maxima
+h =100;                %Altura max
+d=100;                           %distancia maxima
 
-%Tempo de integração
-t=100;                 %(calcular o tempo para chegar ao solo)
-dt = 0.01;             % Intervalo de tempo (s) 
-times = 0 : dt : t;    %calcular tempo final da queda
+set(gca,'nextplot','replacechildren'); 
+v = VideoWriter('peaks.avi');
+open(v);
 
 %figure
 ymax=ordem_y(1);
 for i = 1:length(times)
-    %h =20+ordem_y(np); 
-    
+    [Frx,Fry,Tr]=forcaresultante(X,Y,Xc,Yc,F,nx,ny,dx);
+    Ax=Frx/m;
+    Ay=Fry/m; 
+    alfa=Tr/I;            %Aceleração angular
     % Representação das partículas e caixa 
     plot(X,Y); fill(X,Y,'r'); hold on;
     plot([0 d],[0 0],'k',[0 d],[h h],'w',[0 0],[0 h],'w',[d d],[0 h],'w','LineWidth',5); hold off;
@@ -74,22 +88,24 @@ for i = 1:length(times)
     Y=ones(1,np).*Yc+R.*sin(teta);
     c1=W;
     c2=W+alfa*dt;
-    teta=teta+ones(1,np)*0.5*(c1+c2);
+    teta=teta+ones(1,np)*0.5*(c1+c2)*dt;
     W=W+alfa*dt; 
     %O objeto deve parar ao chegar em y=0 (chão)
-    if ymax>h || xmax>d
-        %deltay=ymin;
-        %Y=Y+ones(1,np)*deltay;
-        %ymin=0;
-        %Xc
-        %Ax
-        %Yc
-        %Ay
-        %m
-        %times(i)
+    if ymax>h || xmax>d 
+        %T=times(i);
+        %xanalitico=xco+Vxo*times(i)+0.5*Ax*T*T;
+        %erro_relaticox=(Xc-xanalitico)/xanalitico
+        %yanalitico=yco+Vyo*times(i)+0.5*Ay*T*T;
+        %erro_relativoy=(Yc-yanalitico)/yanalitico
+        %rev=(teta(1)-tetai(1))/(2*pi);
+        %revanalitico=(Wo*T+0.5*alfa*T*T)/(2*pi);
+        %erro_relativoteta=(rev-revanalitico)/revanalitico
+       
         break
     end
-    
+ 
     % Grava o plot atual
-    mov(i)=getframe(gcf);
+    frame=getframe(gcf);
+    writeVideo(v,frame);
 end
+close(v);
